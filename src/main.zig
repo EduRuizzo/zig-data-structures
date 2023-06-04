@@ -1,6 +1,7 @@
 const std = @import("std");
 const Stack = @import("stack.zig").Stack;
 const Queue = @import("queue.zig").Queue;
+const BSTree = @import("bstree.zig").BSTree;
 const t = std.testing;
 
 test "stack" {
@@ -41,4 +42,54 @@ test "queue" {
 
     try t.expectEqual(iQueue.dequeue(), 5);
     try t.expectEqual(iQueue.dequeue(), 6);
+}
+
+test "bst" {
+    var bst = BSTree(i32).init(std.testing.allocator);
+    defer bst.destroy();
+
+    try bst.insert(50);
+    try bst.insert(80);
+    try bst.insert(30);
+    try bst.insert(40);
+    try bst.insert(70);
+    try bst.insert(60);
+    try bst.insert(75);
+    try bst.insert(100);
+    try bst.insert(90);
+    try bst.insert(110);
+    try bst.insert(120);
+    try bst.insert(35);
+    try bst.insert(45);
+
+    var min = bst.minimum() orelse unreachable;
+    var max = bst.maximum() orelse unreachable;
+
+    try t.expectEqual(min.data, 30);
+    try t.expectEqual(max.data, 120);
+
+    try t.expect(bst.search(50) != null);
+    try t.expect(bst.search(40) != null);
+    try t.expect(bst.search(80) != null);
+    try t.expect(bst.search(30) != null);
+    try t.expect(bst.search(44) == null);
+    bst.print();
+    //     try bst.insert(100);
+    //     try bst.insert(90);
+    //     try bst.insert(0);
+
+    try t.expect(bst.delete(120) != null);
+    bst.print();
+
+    try t.expect(bst.delete(30) != null);
+    bst.print();
+
+    try t.expect(bst.delete(80) != null);
+    bst.print();
+
+    min = bst.minimum() orelse unreachable;
+    max = bst.maximum() orelse unreachable;
+
+    try t.expectEqual(min.data, 35);
+    try t.expectEqual(max.data, 110);
 }

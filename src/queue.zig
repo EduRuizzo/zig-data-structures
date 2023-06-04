@@ -28,30 +28,33 @@ pub fn Queue(comptime T: type) type {
                 .next = null,
             };
 
-            if (this.first == null) {
-                this.first = last;
-            }
-
             if (this.last) |oldLast| {
                 oldLast.next = last;
             }
 
             this.last = last;
 
-            std.log.info("\nqueueing: '{}, first: {}, last: {}'\n", .{ el, .{this.first}, .{this.last} });
+            if (this.first == null) {
+                this.first = last;
+            }
+
+            //std.log.info("queueing: '{}, first: {}, last: {}'\n", .{ el, .{this.first}, .{this.last} });
         }
 
         pub fn dequeue(this: *This) ?T {
-            const first = this.first orelse return null;
-            defer this.gpa.destroy(first);
+            const oldFirst = this.first orelse return null;
+            defer this.gpa.destroy(oldFirst);
 
-            this.first = first.next;
+            // covers removing last element and setting this.first to null
+            // because oldFirst.next would be null
+            this.first = oldFirst.next;
 
-            if (first.next) |_| {} else {
+            //  this.last = null when removing the last element
+            if (oldFirst.next) |_| {} else {
                 this.last = null;
             }
 
-            return first.data;
+            return oldFirst.data;
         }
 
         pub fn destroy(this: *This) void {
