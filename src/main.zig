@@ -2,6 +2,7 @@ const std = @import("std");
 const Stack = @import("stack.zig").Stack;
 const Queue = @import("queue.zig").Queue;
 const BSTree = @import("bstree.zig").BSTree;
+const AVLTree = @import("avltree.zig").AVLTree;
 const t = std.testing;
 
 test "stack" {
@@ -92,4 +93,44 @@ test "bst" {
 
     try t.expectEqual(min.data, 35);
     try t.expectEqual(max.data, 110);
+}
+
+test "avl" {
+    var avl = AVLTree(i32).init(std.testing.allocator);
+    defer avl.destroy();
+
+    try avl.insert(10);
+    try avl.insert(20);
+    try avl.insert(30);
+    try avl.insert(40);
+    try avl.insert(50);
+    try avl.insert(25);
+    try avl.insert(5);
+    try avl.insert(7);
+
+    // // The constructed AVL Tree would be
+    // //        30
+    // //       /  \
+    // //     20   40
+    // //    /  \     \
+    // //   7   25    50
+    // //  / \
+    // // 5  10
+
+    var min = avl.minimum() orelse unreachable;
+    var max = avl.maximum() orelse unreachable;
+
+    try t.expectEqual(min.data, 5);
+    try t.expectEqual(max.data, 50);
+
+    try t.expect(avl.search(10) != null);
+    try t.expect(avl.search(20) != null);
+    try t.expect(avl.search(25) != null);
+    try t.expect(avl.search(30) != null);
+    try t.expect(avl.search(40) != null);
+    try t.expect(avl.search(50) != null);
+    try t.expect(avl.search(44) == null);
+    avl.print();
+
+    // TODO Balance on delete
 }
