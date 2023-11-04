@@ -99,14 +99,14 @@ test "avl" {
     var avl = AVLTree(i32).init(std.testing.allocator);
     defer avl.destroy();
 
-    try avl.insert(10);
-    try avl.insert(20);
-    try avl.insert(30);
-    try avl.insert(40);
-    try avl.insert(50);
-    try avl.insert(25);
-    try avl.insert(5);
-    try avl.insert(7);
+    _ = try avl.insert(10);
+    _ = try avl.insert(20);
+    _ = try avl.insert(30);
+    _ = try avl.insert(40);
+    _ = try avl.insert(50);
+    _ = try avl.insert(25);
+    _ = try avl.insert(5);
+    _ = try avl.insert(7);
 
     // // The constructed AVL Tree would be
     // //        30
@@ -132,5 +132,12 @@ test "avl" {
     try t.expect(avl.search(44) == null);
     avl.print();
 
-    // TODO Balance on delete
+    _ = try avl.delete(40);
+    // // The AVL Tree after delete would be
+    // //         20
+    // //       /    \
+    // //      7      30
+    // //    /  \     / \
+    // //   5   10   25  50
+    avl.print();
 }

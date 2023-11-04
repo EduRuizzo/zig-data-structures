@@ -51,8 +51,53 @@ pub fn AVLTree(comptime T: type) type {
             } else return;
         }
 
-        pub fn insert(this: *This, el: T) !void {
+        pub fn delete(this: *This, el: T) !?*Node {
+            try this.deleteNode(&this.root, el);
+            return this.root;
+        }
+
+        pub fn deleteNode(this: *This, tree: *?*Node, el: T) !void {
+            if (tree.*) |node| {
+                if (el < node.data) {
+                    try this.deleteNode(&node.left, el);
+                    node.height = @max(height(node.left), height(node.right)) + 1;
+                    tree.* = balanceDelete(node, el);
+                    return;
+                }
+                if (el > node.data) {
+                    try this.deleteNode(&node.right, el);
+                    node.height = @max(height(node.left), height(node.right)) + 1;
+                    tree.* = balanceDelete(node, el);
+                    return;
+                }
+                // element found
+                const oldLeft = node.left;
+                const oldRight = node.right;
+                this.gpa.destroy(node);
+
+                // Delete leaf
+                if (oldLeft == null and oldRight == null) {
+                    tree.* = null;
+                    return;
+                }
+
+                // Only Right child
+                if (oldLeft == null) {
+                    tree.* = oldRight;
+                    return;
+                }
+
+                // Only Left child
+                if (oldRight == null) {
+                    tree.* = oldLeft;
+                    return;
+                }
+            }
+        }
+
+        pub fn insert(this: *This, el: T) !?*Node {
             try this.insertNode(&this.root, el);
+            return this.root;
         }
 
         pub fn insertNode(this: *This, tree: *?*Node, el: T) !void {
@@ -60,13 +105,13 @@ pub fn AVLTree(comptime T: type) type {
                 if (el < node.data) {
                     try this.insertNode(&node.left, el);
                     node.height = @max(height(node.left), height(node.right)) + 1;
-                    tree.* = balance(node, el);
+                    tree.* = balanceInsert(node, el);
                     return;
                 }
                 if (el > node.data) {
                     try this.insertNode(&node.right, el);
                     node.height = @max(height(node.left), height(node.right)) + 1;
-                    tree.* = balance(node, el);
+                    tree.* = balanceInsert(node, el);
                     return;
                 }
                 return; // if element in tree don´t insert
@@ -111,8 +156,44 @@ pub fn AVLTree(comptime T: type) type {
             }
         }
 
+        fn balanceDelete(tree: *Node, el: T) *Node {
+            _ = el;
+            const bal = getBalance(tree);
+            if (bal == Balance.balanced) {
+                return tree; // no balance required
+            }
+
+            if (bal == Balance.left) {
+                // due to AVL characteristics right node has to exist
+                const left = tree.left orelse unreachable;
+                const leftBal = getBalance(left);
+                if (leftBal == Balance.left or leftBal == Balance.balanced) { // rotateRight
+                    return rotateRight(tree);
+                }
+                // rotateLeftRight
+                tree.left = rotateLeft(left);
+
+                return rotateRight(tree);
+            }
+
+            if (bal == Balance.right) {
+                // due to AVL characteristics right node has to exist
+                const right = tree.right orelse unreachable;
+                const rightBal = getBalance(right);
+                if (rightBal == Balance.right or rightBal == Balance.balanced) { // rotateLeft
+                    const nr = rotateLeft(tree);
+                    return nr;
+                }
+                //  rotateRightLeft
+                tree.right = rotateRight(right);
+
+                return rotateLeft(tree);
+            }
+            return tree;
+        }
+
         // returns new root
-        fn balance(tree: *Node, el: T) *Node {
+        fn balanceInsert(tree: *Node, el: T) *Node {
             const bal = getBalance(tree);
             if (bal == Balance.balanced) {
                 return tree; // no balance required
@@ -215,12 +296,6 @@ pub fn AVLTree(comptime T: type) type {
             }
 
             return mn;
-        }
-
-        pub fn delete(this: *This, el: T) ?*Node {
-            _ = el;
-            _ = this;
-            return null;
         }
 
         pub fn search(this: *This, el: T) ?*Node {
