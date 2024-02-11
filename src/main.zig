@@ -117,8 +117,8 @@ test "avl" {
     // //  / \
     // // 5  10
 
-    var min = avl.minimum() orelse unreachable;
-    var max = avl.maximum() orelse unreachable;
+    const min = avl.minimum() orelse unreachable;
+    const max = avl.maximum() orelse unreachable;
 
     try t.expectEqual(min.data, 5);
     try t.expectEqual(max.data, 50);
